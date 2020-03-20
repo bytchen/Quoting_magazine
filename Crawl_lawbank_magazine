@@ -1,0 +1,85 @@
+import requests as req
+#res = req.get('https://www.lawbank.com.tw/treatise/pl_article.aspx?AID=P000232676')
+#res = req.get('https://www.lawbank.com.tw/treatise/pl_article.aspx?AID=P000229085')
+paper = input()
+res = req.get(paper)
+
+
+literature=[]
+#print(res.text)
+#print('<td colspan=\"3\">')
+
+#title
+temp_title=res.text.split("<td colspan=\"3\">")[1]
+temp_1_title=temp_title.split('</td>')[0]
+if '（' in temp_1_title: #台大法學論叢的英文名字去掉
+    title = temp_1_title.split('（')[0]
+else:
+    title = temp_1_title
+literature.append(title)
+
+#author
+author=[]
+temp_author=res.text.split('編著譯者：</span></th>')[1]
+
+temp_author_group = temp_author.split('</td>')[0]
+author_num = temp_author_group.count('</a>')
+for i in range(author_num):
+    author.append(temp_author.split('">')[i+2])
+    author_temp=author[i].split('</a>')[0]
+    author[i] = author_temp
+
+#year
+#print(res.text)
+year_temp = res.text.split('出版日期：</span></th>')[1]
+year_1_temp = year_temp.split('<td colspan=\"3\">')[1]
+year_2_temp = year_1_temp.split('</td>')[0]
+year = year_2_temp.split('.')[0]
+literature.append(year)
+
+#magazine and no.
+mag_num_nonspace=[]
+mag_num_str=''
+mag_temp = res.text.split('刊登出處：</span></th>')[1]
+mag_1_temp = mag_temp.split('\">')[2]
+mag = mag_1_temp.split('</a>')[0]
+literature.append(mag)
+
+mag_num_temp = mag_temp.split('\">')[3]
+mag_num_1_temp = mag_num_temp.split('</a>')[0]
+no_num = mag_num_1_temp.count('第')
+mag_num_2_temp = mag_num_1_temp.split('第 ')
+if no_num!=1: #xx卷xx期
+    for i in range(no_num):
+        mag_num_nonspace.append(mag_num_2_temp[i+1].split(' ')[0])
+        mag_num_nonspace.append(mag_num_2_temp[i+1].split(' ')[1])
+else:
+    mag_num_nonspace.append(mag_num_2_temp[1].split(' ')[0])
+    mag_num_nonspace.append(mag_num_2_temp[1].split(' ')[1])
+    if len((mag_num_2_temp[1].split(' ')))>2: #處理特刊
+           mag_num_nonspace.append(mag_num_2_temp[1].split(' ')[2])
+mag_num_str=mag_num_str.join(mag_num_nonspace)
+literature.append(mag_num_str)
+
+#page
+page_temp = mag_temp.split('</a>／')[2]
+page = page_temp.split(' 頁')[0]
+literature.append(page)
+#print(literature)
+#print(author)
+
+#print
+for i in range(len(author)):
+    print(author[i], end='')
+    if i!=len(author)-1:
+        print('、',end='')
+print('（',literature[1],'）',sep='',end='，') #year
+print('〈',literature[0],'〉',sep='',end='，') #title
+print('《',literature[2],'》',sep='',end='，') #magazine
+print(literature[3], sep='', end='，') #magazine no.
+print('頁',literature[4],sep='',end='。') #page
+    
+    
+#print(temp_author_group)
+#print(literature)
+#print(res.text)
